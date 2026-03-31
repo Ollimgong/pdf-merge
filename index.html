@@ -537,7 +537,7 @@ html.light .toggle-dot{transform:translateX(20px)}
   /* ===== Thumbnails ===== */
   async function loadThumbnails(f, idx){
     try{
-      const loadingTask = pdfjsLib.getDocument({data: new Uint8Array(f.arrayBuffer)});
+      const loadingTask = pdfjsLib.getDocument({data: new Uint8Array(f.arrayBuffer.slice(0))});
       const pdfDoc = await loadingTask.promise;
       f._dom.thumbLoading.remove();
 
@@ -741,7 +741,7 @@ html.light .toggle-dot{transform:translateX(20px)}
       const merged = await PDFDocument.create();
       let done=0;
       for(const f of toMerge){
-        const src = await PDFDocument.load(f.arrayBuffer, {ignoreEncryption:true});
+        const src = await PDFDocument.load(f.arrayBuffer.slice(0), {ignoreEncryption:true});
         const indices = f.parsedPages.map(p=>p-1);
         const copied = await merged.copyPages(src, indices);
         copied.forEach(p=>merged.addPage(p));
