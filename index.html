@@ -497,7 +497,7 @@ html.light .toggle-dot{transform:translateX(20px)}
     thumbSection.className = 'thumb-section';
     const thumbLabel = document.createElement('div');
     thumbLabel.className = 'thumb-section-label';
-    thumbLabel.innerHTML = '<span class="arrow open">▶</span> 페이지 미리보기 <span style="font-size:10px;color:var(--text-faint)">(클릭으로 선택/해제)</span>';
+    thumbLabel.innerHTML = '<span class="arrow open">▶</span> 페이지 미리보기 <span style="font-size:10px;color:var(--text-faint)">(클릭 선택 · Shift+클릭 범위 선택)</span>';
     const thumbGrid = document.createElement('div');
     thumbGrid.className = 'thumb-grid';
     const thumbLoading = document.createElement('div');
@@ -575,23 +575,34 @@ html.light .toggle-dot{transform:translateX(20px)}
     numLabel.textContent = pageNum;
     item.append(wrap, numLabel);
 
-    // Click to toggle page
-    item.addEventListener('click', () => {
-      togglePage(f, pageNum);
+    // Click to toggle page (shift+click for range)
+    item.addEventListener('click', (e) => {
+      togglePage(f, pageNum, e.shiftKey);
     });
 
     f._dom.thumbGrid.appendChild(item);
     f.thumbs.push({pageNum, el:item});
   }
 
-  function togglePage(f, pageNum){
-    const idx = f.parsedPages.indexOf(pageNum);
-    if(idx > -1){
-      f.parsedPages.splice(idx, 1);
-    } else {
-      f.parsedPages.push(pageNum);
+  function togglePage(f, pageNum, shiftKey){
+    if(shiftKey && f._lastClicked != null){
+      // Shift+click: select range between lastClicked and current
+      const start = Math.min(f._lastClicked, pageNum);
+      const end = Math.max(f._lastClicked, pageNum);
+      for(let p = start; p <= end; p++){
+        if(!f.parsedPages.includes(p)) f.parsedPages.push(p);
+      }
       f.parsedPages.sort((a,b)=>a-b);
+    } else {
+      const idx = f.parsedPages.indexOf(pageNum);
+      if(idx > -1){
+        f.parsedPages.splice(idx, 1);
+      } else {
+        f.parsedPages.push(pageNum);
+        f.parsedPages.sort((a,b)=>a-b);
+      }
     }
+    f._lastClicked = pageNum;
     // Update input text from parsedPages
     f.pageInput = compressPages(f.parsedPages).join(', ');
     f.error = null;
