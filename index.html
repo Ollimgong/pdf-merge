@@ -179,6 +179,18 @@ html.light .toggle-dot{transform:translateX(20px)}
   flex-shrink:0;line-height:1;
 }
 .btn-remove:hover{color:var(--danger);background:var(--danger-bg)}
+.btn-deselect{
+  background:none;border:1px solid var(--border);color:var(--text-dim);cursor:pointer;
+  font-size:10px;padding:3px 8px;border-radius:5px;transition:all .2s;
+  flex-shrink:0;font-family:'Noto Sans KR',sans-serif;
+}
+.btn-deselect:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.btn-deselect-all{
+  background:var(--surface);color:var(--text-dim);border:1px solid var(--border);
+  padding:13px 24px;border-radius:12px;font-size:13px;font-weight:500;cursor:pointer;
+  font-family:'Noto Sans KR',sans-serif;transition:all .2s;
+}
+.btn-deselect-all:hover{border-color:var(--accent);color:var(--accent)}
 
 /* Page input */
 .page-input-row{display:flex;gap:10px;align-items:center}
@@ -251,6 +263,53 @@ html.light .toggle-dot{transform:translateX(20px)}
 }
 .filename-input:focus{border-color:var(--accent)}
 .filename-suffix{font-size:12px;color:var(--text-faint)}
+
+/* Options */
+.options-section{
+  margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:12px;
+}
+.checkbox-label{
+  display:flex;align-items:center;gap:8px;cursor:pointer;
+  font-size:13px;color:var(--text);user-select:none;
+}
+.checkbox-label input{display:none}
+.checkmark{
+  width:18px;height:18px;border-radius:5px;border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;transition:all .2s;
+  flex-shrink:0;
+}
+.checkbox-label input:checked~.checkmark{
+  background:var(--accent);border-color:var(--accent);
+}
+.checkmark::after{
+  content:'✓';color:white;font-size:11px;font-weight:700;opacity:0;transition:opacity .2s;
+}
+.checkbox-label input:checked~.checkmark::after{opacity:1}
+.page-num-options{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:14px 18px;display:flex;flex-direction:column;gap:10px;
+  width:100%;max-width:460px;transition:background .3s,border-color .3s;
+  animation:fadeIn .2s;
+}
+.option-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.opt-label{font-size:11px;color:var(--text-dim);min-width:52px;flex-shrink:0}
+.opt-pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{
+  background:var(--tag-bg);color:var(--text-dim);border:1px solid transparent;
+  padding:5px 12px;border-radius:20px;font-size:11px;cursor:pointer;
+  font-family:'Noto Sans KR',sans-serif;transition:all .2s;
+}
+.pill:hover{border-color:var(--accent);color:var(--text)}
+.pill[data-active="true"]{
+  background:var(--accent-glow);color:var(--accent);border-color:var(--accent);font-weight:500;
+}
+.start-num-input{
+  width:64px;background:var(--input-bg);border:1px solid var(--border);
+  border-radius:6px;padding:5px 8px;color:var(--text);
+  font-family:'JetBrains Mono',monospace;font-size:12px;
+  outline:none;transition:border-color .2s;text-align:center;
+}
+.start-num-input:focus{border-color:var(--accent)}
 
 /* Actions */
 .actions{margin-top:24px;display:flex;gap:12px;justify-content:center}
@@ -356,8 +415,66 @@ html.light .toggle-dot{transform:translateX(20px)}
     <span class="filename-suffix">.pdf</span>
   </div>
 
+  <div class="options-section" id="optionsSection" style="display:none">
+    <label class="checkbox-label">
+      <input type="checkbox" id="addPageNumbers">
+      <span class="checkmark"></span>
+      페이지 번호 삽입
+    </label>
+    <div class="page-num-options" id="pageNumOptions" style="display:none">
+      <div class="option-row">
+        <span class="opt-label">위치</span>
+        <div class="opt-pills" id="positionPills">
+          <button class="pill" data-val="bottom-center" data-active="true">하단 중앙</button>
+          <button class="pill" data-val="bottom-right">하단 우측</button>
+          <button class="pill" data-val="top-center">상단 중앙</button>
+          <button class="pill" data-val="top-right">상단 우측</button>
+        </div>
+      </div>
+      <div class="option-row">
+        <span class="opt-label">시작 번호</span>
+        <input type="number" class="start-num-input" id="startNumInput" value="1" min="1">
+      </div>
+      <div class="option-row">
+        <span class="opt-label">크기</span>
+        <div class="opt-pills" id="sizePills">
+          <button class="pill" data-val="9">작게</button>
+          <button class="pill" data-val="11" data-active="true">보통</button>
+          <button class="pill" data-val="14">크게</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="hf-divider"></div>
+
+    <label class="checkbox-label">
+      <input type="checkbox" id="addHeaderFooter">
+      <span class="checkmark"></span>
+      머리말 / 꼬리말 삽입
+    </label>
+    <div class="hf-options" id="hfOptions" style="display:none">
+      <div class="hf-row">
+        <span class="hf-label">머리말</span>
+        <input type="text" class="hf-input" id="headerInput" placeholder="예: 2026년 1학기 기말고사 범위">
+      </div>
+      <div class="hf-row">
+        <span class="hf-label">꼬리말</span>
+        <input type="text" class="hf-input" id="footerInput" placeholder="예: 공부 열심히 합시다!">
+      </div>
+      <div class="option-row">
+        <span class="opt-label">글자 크기</span>
+        <div class="opt-pills" id="hfSizePills">
+          <button class="pill" data-val="8">작게</button>
+          <button class="pill" data-val="10" data-active="true">보통</button>
+          <button class="pill" data-val="12">크게</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="actions" id="actions" style="display:none">
     <button class="btn-clear" id="clearBtn">전체 삭제</button>
+    <button class="btn-deselect-all" id="deselectAllBtn">전체 선택 해제</button>
     <button class="btn-merge" id="mergeBtn" disabled>PDF 병합하기</button>
   </div>
 
@@ -396,12 +513,17 @@ html.light .toggle-dot{transform:translateX(20px)}
   const actions = document.getElementById('actions');
   const mergeBtn = document.getElementById('mergeBtn');
   const clearBtn = document.getElementById('clearBtn');
+  const deselectAllBtn = document.getElementById('deselectAllBtn');
   const summaryArea = document.getElementById('summaryArea');
   const statusArea = document.getElementById('statusArea');
   const filenameSection = document.getElementById('filenameSection');
   const filenameInput = document.getElementById('filenameInput');
   const themeToggle = document.getElementById('themeToggle');
   const themeIcon = document.getElementById('themeIcon');
+  const optionsSection = document.getElementById('optionsSection');
+  const addPageNumbersCb = document.getElementById('addPageNumbers');
+  const pageNumOptions = document.getElementById('pageNumOptions');
+  const startNumInput = document.getElementById('startNumInput');
 
   /* ===== Theme ===== */
   let isDark = true;
@@ -411,9 +533,32 @@ html.light .toggle-dot{transform:translateX(20px)}
     themeIcon.textContent = isDark ? '🌙' : '☀️';
   });
 
+  /* ===== Page number options ===== */
+  addPageNumbersCb.addEventListener('change', () => {
+    pageNumOptions.style.display = addPageNumbersCb.checked ? 'flex' : 'none';
+  });
+
+  // Pill selection
+  document.querySelectorAll('.opt-pills').forEach(group => {
+    group.querySelectorAll('.pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        group.querySelectorAll('.pill').forEach(p => p.dataset.active = 'false');
+        pill.dataset.active = 'true';
+      });
+    });
+  });
+
+  function getPageNumSettings(){
+    const pos = document.querySelector('#positionPills .pill[data-active="true"]')?.dataset.val || 'bottom-center';
+    const size = parseInt(document.querySelector('#sizePills .pill[data-active="true"]')?.dataset.val || '11');
+    const startNum = parseInt(startNumInput.value) || 1;
+    return {pos, size, startNum};
+  }
+
   /* ===== Events ===== */
   dropZone.addEventListener('click', () => fileInput.click());
   clearBtn.addEventListener('click', clearAll);
+  deselectAllBtn.addEventListener('click', deselectAll);
   mergeBtn.addEventListener('click', mergePDFs);
 
   ['dragenter','dragover'].forEach(e =>
@@ -467,8 +612,13 @@ html.light .toggle-dot{transform:translateX(20px)}
     const rmBtn = document.createElement('button');
     rmBtn.className = 'btn-remove';
     rmBtn.textContent = '✕';
+    rmBtn.title = '파일 삭제';
     rmBtn.addEventListener('click', () => removeFile(idx));
-    header.append(indexEl, nameEl, badge, rmBtn);
+    const deselectBtn = document.createElement('button');
+    deselectBtn.className = 'btn-deselect';
+    deselectBtn.textContent = '선택 해제';
+    deselectBtn.addEventListener('click', () => deselectFile(f));
+    header.append(indexEl, nameEl, badge, deselectBtn, rmBtn);
     card.appendChild(header);
 
     // Input row
@@ -689,6 +839,7 @@ html.light .toggle-dot{transform:translateX(20px)}
     const hasFiles = files.length > 0;
     actions.style.display = hasFiles ? 'flex' : 'none';
     filenameSection.style.display = hasFiles ? 'flex' : 'none';
+    optionsSection.style.display = hasFiles ? 'flex' : 'none';
 
     const totalSelected = files.reduce((s,f)=>s+(f.error?0:f.parsedPages.length),0);
     const filesWithPages = files.filter(f=>f.parsedPages.length>0&&!f.error).length;
@@ -728,6 +879,22 @@ html.light .toggle-dot{transform:translateX(20px)}
     updateUI();
   }
 
+  function deselectFile(f){
+    f.parsedPages = [];
+    f.pageInput = '';
+    f.error = null;
+    f._lastClicked = null;
+    f._dom.input.value = '';
+    f._dom.input.classList.remove('error','valid');
+    updateInputFeedback(f);
+    updateThumbSelection(f);
+    updateUI();
+  }
+
+  function deselectAll(){
+    files.forEach(f => deselectFile(f));
+  }
+
   /* ===== Merge ===== */
   async function mergePDFs(){
     const toMerge = files.filter(f=>f.parsedPages.length>0&&!f.error);
@@ -746,7 +913,31 @@ html.light .toggle-dot{transform:translateX(20px)}
         const copied = await merged.copyPages(src, indices);
         copied.forEach(p=>merged.addPage(p));
         done++;
-        updateProgress(done/toMerge.length*100);
+        updateProgress(done/toMerge.length*80);
+      }
+
+      // Add page numbers if enabled
+      if(addPageNumbersCb.checked){
+        const {pos, size, startNum} = getPageNumSettings();
+        const font = await merged.embedFont(PDFLib.StandardFonts.Helvetica);
+        const pages = merged.getPages();
+        const totalP = pages.length;
+        for(let i=0; i<totalP; i++){
+          const page = pages[i];
+          const {width, height} = page.getSize();
+          const numText = ''+(startNum + i);
+          const textW = font.widthOfTextAtSize(numText, size);
+          let x, y;
+          if(pos==='bottom-center'){ x=(width-textW)/2; y=28; }
+          else if(pos==='bottom-right'){ x=width-textW-40; y=28; }
+          else if(pos==='top-center'){ x=(width-textW)/2; y=height-28; }
+          else { x=width-textW-40; y=height-28; }
+          page.drawText(numText, {
+            x, y, size, font,
+            color: PDFLib.rgb(0.35, 0.35, 0.35),
+          });
+        }
+        updateProgress(95);
       }
       const bytes = await merged.save();
       const blob = new Blob([bytes],{type:'application/pdf'});
