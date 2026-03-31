@@ -541,11 +541,31 @@ html.light .toggle-dot{transform:translateX(20px)}
       const pdfDoc = await loadingTask.promise;
       f._dom.thumbLoading.remove();
 
+      // Pre-create all placeholders in order
+      for(let p = 1; p <= f.totalPages; p++){
+        const item = document.createElement('div');
+        item.className = 'thumb-item';
+        item.dataset.page = p;
+        const wrap = document.createElement('div');
+        wrap.className = 'thumb-canvas-wrap';
+        wrap.innerHTML = '<span style="font-size:10px;color:var(--text-faint)">' + p + '</span>';
+        const numLabel = document.createElement('div');
+        numLabel.className = 'thumb-page-num';
+        numLabel.textContent = p;
+        item.append(wrap, numLabel);
+        (function(pageNum){
+          item.addEventListener('click', function(e){ togglePage(f, pageNum, e.shiftKey); });
+        })(p);
+        f._dom.thumbGrid.appendChild(item);
+        f.thumbs.push({pageNum: p, el: item, wrap: wrap});
+      }
+
+      // Render canvases in batches, filling into existing placeholders
       const batchSize = 6;
       for(let i = 0; i < f.totalPages; i += batchSize){
         const promises = [];
         for(let j = i; j < Math.min(i+batchSize, f.totalPages); j++){
-          promises.push(renderThumb(pdfDoc, j+1, f, idx));
+          promises.push(renderThumbInto(pdfDoc, j+1, f));
         }
         await Promise.all(promises);
       }
@@ -555,7 +575,7 @@ html.light .toggle-dot{transform:translateX(20px)}
     }
   }
 
-  async function renderThumb(pdfDoc, pageNum, f){
+  async function renderThumbInto(pdfDoc, pageNum, f){
     const page = await pdfDoc.getPage(pageNum);
     const vp = page.getViewport({scale:0.3});
     const canvas = document.createElement('canvas');
@@ -564,24 +584,12 @@ html.light .toggle-dot{transform:translateX(20px)}
     const ctx = canvas.getContext('2d');
     await page.render({canvasContext:ctx, viewport:vp}).promise;
 
-    const item = document.createElement('div');
-    item.className = 'thumb-item';
-    item.dataset.page = pageNum;
-    const wrap = document.createElement('div');
-    wrap.className = 'thumb-canvas-wrap';
-    wrap.appendChild(canvas);
-    const numLabel = document.createElement('div');
-    numLabel.className = 'thumb-page-num';
-    numLabel.textContent = pageNum;
-    item.append(wrap, numLabel);
-
-    // Click to toggle page (shift+click for range)
-    item.addEventListener('click', (e) => {
-      togglePage(f, pageNum, e.shiftKey);
-    });
-
-    f._dom.thumbGrid.appendChild(item);
-    f.thumbs.push({pageNum, el:item});
+    // Find the pre-created placeholder and replace its content
+    const thumb = f.thumbs.find(t => t.pageNum === pageNum);
+    if(thumb){
+      thumb.wrap.innerHTML = '';
+      thumb.wrap.appendChild(canvas);
+    }
   }
 
   function togglePage(f, pageNum, shiftKey){
